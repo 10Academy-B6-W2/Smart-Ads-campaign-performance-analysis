@@ -4,11 +4,6 @@ import pandas as pd
 import seaborn as sns
 
 
-def convert_labels(df):
-    df.columns = [column.replace(' ', '_').lower() for column in df.columns]
-    return df
-
-
 def percent_missing(df: pd.DataFrame):
     # Calculate total  number of cells in dataframe
     totalCells = np.product(df.shape)
@@ -29,3 +24,8 @@ def percent_missing_for_col(df: pd.DataFrame, col_name: str) -> float:
         return 0.0
     missing_count = df[col_name].isnull().sum()
     return round((missing_count / total_count) * 100, 2)
+
+
+def convert_labels(df):
+    df.columns = [column.replace(' ', '_').lower() for column in df.columns]
+    return df
