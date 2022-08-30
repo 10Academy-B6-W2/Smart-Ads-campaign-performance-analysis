@@ -23,3 +23,9 @@ def percent_missing(df: pd.DataFrame):
     return print("The dataset contains", round(((totalMissing / totalCells) * 100), 2), "%", "missing values.")
 
 
+def percent_missing_for_col(df: pd.DataFrame, col_name: str) -> float:
+    total_count = len(df[col_name])
+    if total_count <= 0:
+        return 0.0
+    missing_count = df[col_name].isnull().sum()
+    return round((missing_count / total_count) * 100, 2)
