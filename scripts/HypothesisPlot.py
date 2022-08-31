@@ -5,7 +5,7 @@ Created on Mon May 16 14:02:24 2022
 @author: kiiru
 """
 import sys
-sys.path.insert(0, './AB_Testing')
+sys.path.insert(0, './scripts')
 
 import matplotlib.pyplot as plt
 from ABTestingFunctions import ABTesting
