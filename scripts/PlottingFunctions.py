@@ -6,7 +6,7 @@ Created on Mon May 16 14:45:27 2022
 """
 
 import sys
-sys.path.insert(0, '/scripts')
+sys.path.insert(0, '../scripts')
 
 import numpy as np
 import scipy.stats as scs

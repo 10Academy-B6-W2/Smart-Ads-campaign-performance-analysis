@@ -5,7 +5,7 @@ Created on Mon May 16 14:02:24 2022
 @author: kiiru
 """
 import sys
-sys.path.insert(0, './scripts')
+sys.path.insert(0, '../scripts')
 
 import matplotlib.pyplot as plt
 from ABTestingFunctions import ABTesting
@@ -79,4 +79,59 @@ class HypothesisPlot:
         plt.show()
         
         
-        
+    def abplot(self, N_A, N_B, bcr, d_hat, sig_level=0.05, show_power=False,
+        show_alpha=False, show_beta=False, show_p_value=False,
+        show_legend=True):
+           
+            """Example plot of AB test
+            Example:
+                abplot(n=4000, bcr=0.11, d_hat=0.03)
+            Parameters:
+                n (int): total sample size for both control and test groups (N_A + N_B)
+                bcr (float): base conversion rate; conversion rate of control
+                d_hat: difference in conversion rate between the control and test
+                    groups, sometimes referred to as **minimal detectable effect** when
+                    calculating minimum sample size or **lift** when discussing
+                    positive improvement desired from launching a change.
+            Returns:
+                None: the function plots an AB test as two distributions for
+                visualization purposes
+            """
+        # create a plot object
+            fig, ax = plt.subplots(figsize=(12, 6))
+
+            # define parameters to find pooled standard error
+            X_A = bcr * N_A
+            X_B = (bcr + d_hat) * N_B
+            stderr = ABT.pooled_SE(N_A, N_B, X_A, X_B)
+
+            # plot the distribution of the null and alternative hypothesis
+            PLTF.plot_null(ax, stderr)
+            PLTF.plot_alt(ax, stderr, d_hat)
+
+            # set extent of plot area
+            ax.set_xlim(-8 * stderr, 8 * stderr)
+
+            # shade areas according to user input
+            if show_power:
+                PLTF.show_area(ax, d_hat, stderr, sig_level, area_type='power')
+            if show_alpha:
+                PLTF.show_area(ax, d_hat, stderr, sig_level, area_type='alpha')
+            if show_beta:
+                PLTF.show_area(ax, d_hat, stderr, sig_level, area_type='beta')
+
+            # show p_value based on the binomial distributions for the two groups
+            if show_p_value:
+                null = ABT.ab_dist(stderr, 'control')
+                # p_value = ABT.p_val(N_A, N_B, bcr, bcr+d_hat)
+                ax.text(3 * stderr, null.pdf(0),
+                        'p-value={0:.3f}'.format(0.25917),
+                        fontsize=12, ha='left')
+
+            # option to show legend
+            if show_legend:
+                plt.legend()
+
+            plt.xlabel('d')
+            plt.ylabel('PDF')
+            plt.show()
