@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 import math
-import sys
+import matplotlib.pyplot as plt
 
 
 
 def transform_data(data):
+
+    data = data[data['yes'] == 1].append(data[data['no'] == 1])
 
     data['hour'] = data['hour'].astype(str)
     con=data['date']+' '+data['hour']+':00' 
@@ -14,20 +16,12 @@ def transform_data(data):
     
     exposed = data[data['experiment'] == 'exposed'].groupby('date_time')['yes'].head(2000).to_list()
     control = data[data['experiment'] == 'control'].groupby('date_time')['yes'].head(2000).to_list()
+    
 
     return exposed, control
 
 
-class ConditionalSPRT:
-  def __init__(self,exposed,control,odd_ratio,alpha=0.05,beta=0.10,stop=None):
-      self.exposed = exposed
-      self.control = control
-      self.odd_ratio = odd_ratio
-      self.alpha = alpha
-      self.beta = beta
-      self.stop = stop
-
-  def ConditionalSPRT(self,x,y,t1,alpha=0.05,beta=0.10,stop=None):
+def ConditionalSPRT(x,y,t1,alpha=0.05,beta=0.10,stop=None):
  
         if t1<=1:
             print('warning',"Odd ratio should exceed 1.")
@@ -156,3 +150,18 @@ class ConditionalSPRT:
             truncate_decision='Non'
             truncated=np.nan
         return (outcome,n, k,l,u,truncated,truncate_decision,x1,r,stats,limits)
+
+
+def plot_cumulative(upper_limit, lower_limit, r, x1):
+        plt.plot(r, upper_limit, color='blue',
+                 linewidth=1, label='Upper Bound')
+        plt.plot(r, lower_limit, color='red',
+                 linewidth=1, label='Lower Bound')
+        plt.plot(r, x1, color='black', linewidth=1,
+                 label='Cumulative value of yes and no')
+        plt.legend()
+        plt.show()
+
+
+
+  
