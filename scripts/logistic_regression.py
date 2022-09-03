@@ -83,7 +83,7 @@ class LogesticRegressionModel:
         print(f"step {step}: {label} Accuracy of LogesticRegression: {acc:.3f}")
         
     
-    def report_outcome(self, pred, actual):
+    def report(self, pred, actual):
         print("Test Metrics")
         print("================")
         print(metrics.classification_report(pred, actual))
