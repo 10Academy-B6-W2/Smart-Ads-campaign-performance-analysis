@@ -88,3 +88,47 @@ class LRModel:
         print("================")
         print(metrics.classification_report(pred, actual))
         return metrics.classification_report(pred, actual)
+    
+    def confusion_matrix(self, pred, actual):
+        ax=sns.heatmap(pd.DataFrame(metrics.confusion_matrix(pred, actual)))
+        plt.title('Confusion matrix')
+        plt.ylabel('Actual')
+        plt.xlabel('Predicted')
+        return metrics.confusion_matrix(pred, actual)
+    
+    def calculate_p_values(self):
+       """ 
+       Calcualting p_values for logestic regression.
+       code refered from the following link
+       https://gist.github.com/rspeare/77061e6e317896be29c6de9a85db301d
+       
+       """
+      # X = 
+       denom = (2.0*(1.0+np.cosh(self.clf.decision_function(X))))
+       denom = np.tile(denom,(X.shape[1],1)).T
+       F_ij = np.dot((X/denom).T,X) ## Fisher Information Matrix
+       Cramer_Rao = np.linalg.inv(F_ij) ## Inverse Information Matrix
+       sigma_estimates = np.sqrt(np.diagonal(Cramer_Rao))
+       z_scores = self.clf.coef_[0]/sigma_estimates # z-score 
+       p_values = [stat.norm.sf(abs(x)) for x in z_scores] ### two tailed test for p-values
+        
+       p_df = pd.DataFrame()
+       p_df['features'] = self.X_train.columns.to_list()
+       p_df['p_values'] = p_values
+        
+       return p_df
+    
+    def plot_pvalues(self, p_df):
+        
+        fig, ax = plt.subplots(figsize=(12,7))
+
+        ax.plot([0.05,0.05], [0.05,5])
+        sns.scatterplot(data=p_df, y='features', x='p_values', color="green")
+        plt.title("P values of features", size=20)
+
+        plt.xticks(np.arange(0,max(p_df['p_values']) + 0.05, 0.05))
+
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+
+        plt.show()
