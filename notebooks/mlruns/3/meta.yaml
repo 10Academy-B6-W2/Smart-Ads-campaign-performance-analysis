@@ -1,0 +1,4 @@
+artifact_location: file:///C:/Users/User/Desktop/Smart-Ads-campaign-performance-analysis/notebooks/mlruns/3
+experiment_id: '3'
+lifecycle_stage: active
+name: Random Forest Classifier

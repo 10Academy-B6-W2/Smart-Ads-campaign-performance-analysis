@@ -9,6 +9,8 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold
+import mlflow
+import os
 
 #LOSS FUNCTION
 def loss_function(actual, pred):
@@ -28,6 +30,8 @@ class LogesticRegressionModel:
         self.clf = LogisticRegression()
         
     def train(self, folds=1):
+
+        mlflow.set_experiment("Logistic Regression")
         
         kf = KFold(n_splits = folds)
         
@@ -67,6 +71,16 @@ class LogesticRegressionModel:
         report = self.report(y_pred, self.y_test)
         matrix = self.confusion_matrix(y_pred, self.y_test)
         loss = loss_function(self.y_test, y_pred)
+
+        mlflow.log_metric("Loss function",loss)
+        mlflow.log_metric("Accuracy",accuracy)
+
+        if not os.path.exists("Logistic Regression reports"):
+            os.makedirs("Logistic Regression reports")
+        with open("Logistic Regression reports/report.txt", "w") as f:
+            f.write(report)
+        mlflow.log_artifacts("Logistic Regression reports")
+
 
         
         return accuracy, loss, report, matrix 

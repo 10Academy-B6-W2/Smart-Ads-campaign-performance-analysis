@@ -15,6 +15,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import KFold
+import mlflow
+import os
 
 #LOSS FUNCTION
 ### Defining loss function  for the model using the validation data 
@@ -36,6 +38,8 @@ class RandomForestClassifierModel:
         self.clf = RandomForestClassifier(n_estimators=100)
         
     def train(self, folds=1):
+
+        mlflow.set_experiment("Random Forest Classifier")
         
         kf = KFold(n_splits = folds)
         
@@ -79,6 +83,15 @@ class RandomForestClassifierModel:
         matrix = self.confusion_matrix(y_pred, self.y_test)
         
         loss = loss_function(self.y_test, y_pred)
+
+        mlflow.log_metric("Loss function",loss)
+        mlflow.log_metric("Accuracy",accuracy)
+
+        if not os.path.exists("Random Forest Classifier reports"):
+            os.makedirs("Random Forest Classifier reports")
+        with open("Random Forest Classifier reports/report.txt", "w") as f:
+            f.write(report)
+        mlflow.log_artifacts("Random Forest Classifier reports")
         
         return accuracy, loss,  report, matrix
     

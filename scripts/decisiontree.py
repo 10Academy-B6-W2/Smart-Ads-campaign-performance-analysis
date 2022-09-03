@@ -8,6 +8,8 @@ from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold
+import mlflow
+import os
 
 #LOSS FUNCTION
 ### Defining loss function  for the model using the validation data 
@@ -29,6 +31,8 @@ class DecisionTreesModel:
         self.clf = DecisionTreeClassifier(max_depth=4)
         
     def train(self, folds=1):
+
+        mlflow.set_experiment("Decision Tree Classifier")
         
         kf = KFold(n_splits = folds)
         
@@ -72,6 +76,15 @@ class DecisionTreesModel:
         matrix = self.confusion_matrix(y_pred, self.y_test)
         
         loss = loss_function(self.y_test, y_pred)
+
+        mlflow.log_metric("Loss function",loss)
+        mlflow.log_metric("Accuracy",accuracy)
+
+        if not os.path.exists("Decision Tree Classifier reports"):
+            os.makedirs("Decision Tree Classifier reports")
+        with open("Decision Tree Classifier reports/report.txt", "w") as f:
+            f.write(report)
+        mlflow.log_artifacts("Decision Tree Classifier reports")
         
         return accuracy, loss,  report, matrix
     

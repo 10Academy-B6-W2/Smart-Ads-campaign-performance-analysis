@@ -1,0 +1,4 @@
+artifact_location: file:///C:/Users/User/Desktop/Smart-Ads-campaign-performance-analysis/notebooks/mlruns/1
+experiment_id: '1'
+lifecycle_stage: active
+name: Logistic Regression
