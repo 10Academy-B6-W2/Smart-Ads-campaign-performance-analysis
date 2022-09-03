@@ -24,7 +24,7 @@ def loss_function(actual, pred):
 
 #DESCISON TREE CLASS 
 
-class RFM:
+class RandomForestClassifierModel:
     
     def __init__(self, X_train, X_test, y_train, y_test, max_depth=5):
         
