@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -12,11 +11,13 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold
 
 #LOSS FUNCTION
-def calculate_loss_function(actual, pred):
-    rootmeansquareerror = np.sqrt(mean_squared_error(actual, pred))
-    return rootmeansquareerror
+def loss_function(actual, pred):
+    rmse = np.sqrt(mean_squared_error(actual, pred))
+    return rmse
+
 
 class LogesticRegressionModel:
+    
     def __init__(self, X_train, X_test, y_train, y_test):
         
         self.X_train = X_train
@@ -25,16 +26,15 @@ class LogesticRegressionModel:
         self.y_test = y_test
         
         self.clf = LogisticRegression()
-
-
-    def train_model(self, folds=1):
+        
+    def train(self, folds=1):
         
         kf = KFold(n_splits = folds)
         
         iterator = kf.split(self.X_train)
         
-        accuracy_arr = []
         loss_arr = []
+        acc_arr = []
         for i in range(folds):
             train_index, valid_index = next(iterator)
             
@@ -46,20 +46,19 @@ class LogesticRegressionModel:
             vali_pred = self.clf.predict(X_valid)
             
             accuracy = self.calculate_score(y_valid, vali_pred)
-            loss = calculate_loss_function(y_valid, vali_pred)
+            loss = loss_function(y_valid, vali_pred)
             
             self.__printAccuracy(accuracy, i, label="Validation")
             self.__printLoss(loss, i, label="Validation")
             print()
             
-            accuracy_arr.append(accuracy)
+            acc_arr.append(accuracy)
             loss_arr.append(loss)
 
             
-        return self.clf, accuracy_arr, loss_arr
+        return self.clf, acc_arr, loss_arr
     
-    
-    def test_model(self):
+    def test(self):
         y_pred = self.clf.predict(self.X_test)
         
         accuracy = self.calculate_score(self.y_test, y_pred)
@@ -67,21 +66,19 @@ class LogesticRegressionModel:
         
         report = self.report(y_pred, self.y_test)
         matrix = self.confusion_matrix(y_pred, self.y_test)
-        loss = calculate_loss_function(self.y_test, y_pred)
+        loss = loss_function(self.y_test, y_pred)
 
         
         return accuracy, loss, report, matrix 
     
+    def __printAccuracy(self, acc, step=1, label=""):
+        print(f"step {step}: {label} Accuracy of LogesticRegression is: {acc:.3f}")
+    
+    def __printLoss(self, loss, step=1, label=""):
+        print(f"step {step}: {label} Loss of LogesticRegression is: {loss:.3f}")
     
     def calculate_score(self, pred, actual):
         return metrics.accuracy_score(actual, pred)
-    
-    def __printLoss(self, loss, step=1, label=""):
-        print(f"step {step}: {label} Loss of LogesticRegression: {loss:.3f}")
-        
-    def __printAccuracy(self, acc, step=1, label=""):
-        print(f"step {step}: {label} Accuracy of LogesticRegression: {acc:.3f}")
-        
     
     def report(self, pred, actual):
         print("Test Metrics")
@@ -96,43 +93,38 @@ class LogesticRegressionModel:
         plt.xlabel('Predicted')
         return metrics.confusion_matrix(pred, actual)
     
-    def calculate_p_values(self):
-       
-      # X = 
-       d = (2.0*(1.0+np.cosh(self.clf.decision_function(X))))
-       d = np.tile(d,(X.shape[1],1)).T
-       F_im = np.dot((X/denom).T,X) ## Fisher Information Matrix
-       Cramer_Rao = np.linalg.inv(F_im) ## Inverse Information Matrix
-       sigma_estimates = np.sqrt(np.diagonal(Cramer_Rao))
-       z_scores = self.clf.coef_[0]/sigma_estimates # z-score 
-       p_values = [stat.norm.sf(abs(x)) for x in z_scores] ### two tailed test for p-values
+    def get_p_values(self):
+        """ 
+        Calcualting p_values for logestic regression.
+        code refered from the following link
+        https://gist.github.com/rspeare/77061e6e317896be29c6de9a85db301d
         
-       p_value_df = pd.DataFrame()
-       p_value_df['features'] = self.X_train.columns.to_list()
-       p_value_df['p_values'] = p_values
+        """
+        denom = (2.0*(1.0+np.cosh(self.clf.decision_function(X))))
+        denom = np.tile(denom,(X.shape[1],1)).T
+        F_ij = np.dot((X/denom).T,X) ## Fisher Information Matrix
+        Cramer_Rao = np.linalg.inv(F_ij) ## Inverse Information Matrix
+        sigma_estimates = np.sqrt(np.diagonal(Cramer_Rao))
+        z_scores = self.clf.coef_[0]/sigma_estimates # z-score 
+        p_values = [stat.norm.sf(abs(x)) for x in z_scores] ### two tailed test for p-values
         
-       return p_value_df
+        p_df = pd.DataFrame()
+        p_df['features'] = self.X_train.columns.to_list()
+        p_df['p_values'] = p_values
+        
+        return p_df
     
-    def plot_pvalues(self, p_value_df):
+    def plot_pvalues(self, p_df):
         
         fig, ax = plt.subplots(figsize=(12,7))
 
         ax.plot([0.05,0.05], [0.05,5])
-        sns.scatterplot(data=p_value_df, y='features', x='p_values', color="green")
+        sns.scatterplot(data=p_df, y='features', x='p_values', color="green")
         plt.title("P values of features", size=20)
 
-        plt.xticks(np.arange(0,max(p_value_df['p_values']) + 0.05, 0.05))
+        plt.xticks(np.arange(0,max(p_df['p_values']) + 0.05, 0.05))
 
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
 
         plt.show()
-        
-    def get_feature_importance(self):
-        importance = self.clf.feature_importances_
-        featureimportance_df = pd.DataFrame()
-        
-        featureimportance_df['feature'] = self.X_train.columns.to_list()
-        featureimportance_df['feature_importances'] = importance
-        
-        return featureimportance_df

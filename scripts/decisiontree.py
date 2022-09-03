@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
 import seaborn as sns
@@ -10,12 +9,13 @@ from sklearn.metrics import accuracy_score
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import KFold
 
-
+#LOSS FUNCTION
 ### Defining loss function  for the model using the validation data 
+def loss_function(actual, pred):
+    rmse = np.sqrt(mean_squared_error(actual, pred))
+    return rmse
 
-def calculate_loss_function(actual, pred):
-    rootmeansquareerror = np.sqrt(mean_squared_error(actual, pred))
-    return rootmeansquareerror
+#DESCISON TREE CLASS 
 
 class DecisionTreesModel:
     
@@ -28,14 +28,14 @@ class DecisionTreesModel:
         
         self.clf = DecisionTreeClassifier(max_depth=4)
         
-    def train_model(self, folds=1):
+    def train(self, folds=1):
         
         kf = KFold(n_splits = folds)
         
         iterator = kf.split(self.X_train)
         
         loss_arr = []
-        accuracy_arr = []
+        acc_arr = []
         for i in range(folds):
             train_index, valid_index = next(iterator)
             
@@ -49,19 +49,19 @@ class DecisionTreesModel:
             accuracy = self.calculate_score(y_valid
                                               , vali_pred)
             
-            loss = calculate_loss_function(y_valid, vali_pred)
+            loss = loss_function(y_valid, vali_pred)
             
             self.__printAccuracy(accuracy, i, label="Validation")
             self.__printLoss(loss, i, label="Validation")
             print()
             
-            accuracy_arr.append(accuracy)
+            acc_arr.append(accuracy)
             loss_arr.append(loss)
 
             
-        return self.clf, accuracy_arr, loss_arr
+        return self.clf, acc_arr, loss_arr
     
-    def test_model(self):
+    def test(self):
         
         y_pred = self.clf.predict(self.X_test)
         
@@ -71,9 +71,21 @@ class DecisionTreesModel:
         report = self.report(y_pred, self.y_test)
         matrix = self.confusion_matrix(y_pred, self.y_test)
         
-        loss = calculate_loss_function(self.y_test, y_pred)
+        loss = loss_function(self.y_test, y_pred)
         
         return accuracy, loss,  report, matrix
+    
+    def get_feature_importance(self):
+        importance = self.clf.feature_importances_
+        fi_df = pd.DataFrame()
+        
+        fi_df['feature'] = self.X_train.columns.to_list()
+        fi_df['feature_importances'] = importance
+        
+        return fi_df
+    
+    def __printAccuracy(self, acc, step=1, label=""):
+        print(f"step {step}: {label} Accuracy of DecisionTreesModel is: {acc:.3f}")
     
     def __printLoss(self, loss, step=1, label=""):
         print(f"step {step}: {label} Loss of DecisionTreesModel is: {loss:.3f}")
@@ -81,27 +93,15 @@ class DecisionTreesModel:
     def calculate_score(self, pred, actual):
         return metrics.accuracy_score(actual, pred)
     
-    def __printAccuracy(self, acc, step=1, label=""):
-        print(f"step {step}: {label} Accuracy of DecisionTreesModel is: {acc:.3f}")
-        
-    def report_outcome(self, pred, actual):
+    def report(self, pred, actual):
         print("Test Metrics")
         print("================")
         print(metrics.classification_report(pred, actual))
         return metrics.classification_report(pred, actual)
     
-    def get_feature_importance(self):
-        importance = self.clf.feature_importances_
-        featureimportance_df = pd.DataFrame()
-        
-        featureimportance_df['feature'] = self.X_train.columns.to_list()
-        featureimportance_df['feature_importances'] = importance
-        
-        return featureimportance_df
-    
     def confusion_matrix(self, pred, actual):
         ax=sns.heatmap(pd.DataFrame(metrics.confusion_matrix(pred, actual)))
-        plt.title('Confusion Matrix')
+        plt.title('Confusion matrix')
         plt.ylabel('Actual')
         plt.xlabel('Predicted')
         return metrics.confusion_matrix(pred, actual)
