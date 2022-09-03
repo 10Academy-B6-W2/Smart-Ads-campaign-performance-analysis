@@ -127,3 +127,12 @@ class LogesticRegressionModel:
         plt.yticks(fontsize=12)
 
         plt.show()
+        
+    def get_feature_importance(self):
+        importance = self.clf.feature_importances_
+        featureimportance_df = pd.DataFrame()
+        
+        featureimportance_df['feature'] = self.X_train.columns.to_list()
+        featureimportance_df['feature_importances'] = importance
+        
+        return featureimportance_df
