@@ -16,7 +16,7 @@ def calculate_loss_function(actual, pred):
     rootmeansquareerror = np.sqrt(mean_squared_error(actual, pred))
     return rootmeansquareerror
 
-class LRModel:
+class LogesticRegressionModel:
     def __init__(self, X_train, X_test, y_train, y_test):
         
         self.X_train = X_train
