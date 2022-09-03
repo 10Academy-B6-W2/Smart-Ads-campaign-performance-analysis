@@ -57,3 +57,34 @@ class LRModel:
 
             
         return self.clf, accuracy_arr, loss_arr
+    
+    
+    def test_model(self):
+        y_pred = self.clf.predict(self.X_test)
+        
+        accuracy = self.calculate_score(self.y_test, y_pred)
+        self.__printAccuracy(accuracy, label="Test")
+        
+        report = self.report(y_pred, self.y_test)
+        matrix = self.confusion_matrix(y_pred, self.y_test)
+        loss = calculate_loss_function(self.y_test, y_pred)
+
+        
+        return accuracy, loss, report, matrix 
+    
+    
+    def calculate_score(self, pred, actual):
+        return metrics.accuracy_score(actual, pred)
+    
+    def __printLoss(self, loss, step=1, label=""):
+        print(f"step {step}: {label} Loss of LogesticRegression: {loss:.3f}")
+        
+    def __printAccuracy(self, acc, step=1, label=""):
+        print(f"step {step}: {label} Accuracy of LogesticRegression: {acc:.3f}")
+        
+    
+    def report_output(self, pred, actual):
+        print("Test Metrics")
+        print("================")
+        print(metrics.classification_report(pred, actual))
+        return metrics.classification_report(pred, actual)
